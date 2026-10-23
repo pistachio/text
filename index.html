@@ -95,32 +95,11 @@
             border-color: #555;
         }
 
-        button.primary {
-            background-color: var(--accent);
-            color: white;
-            border: none;
-        }
-
-        button.primary:hover {
-            background-color: #c9664a;
-        }
-
         .stats {
             font-size: 12px;
             color: #888;
             display: flex;
             gap: 16px;
-        }
-
-        .output-header {
-            padding: 12px 20px;
-            border-bottom: 1px solid var(--border);
-            font-weight: bold;
-            font-size: 14px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: #2d2d2d;
         }
     </style>
 </head>
@@ -133,7 +112,6 @@
         <div class="toolbar">
             <div class="btn-group">
                 <button onclick="clearText()">🗑 Clear</button>
-                <button onclick="copyText('inputText')">📋 Copy</button>
             </div>
             <div class="stats" id="inputStats">Chars: 0 | Words: 0 | Lines: 0</div>
         </div>
@@ -151,20 +129,10 @@
             <button onclick="convertCase('inverse')">InVeRsE CaSe</button>
         </div>
     </div>
-
-    <!-- OUTPUT PANEL -->
-    <div class="panel" style="flex: 0.6;">
-        <div class="output-header">
-            <span>Result</span>
-            <button class="primary" onclick="copyText('outputText')">Copy Result</button>
-        </div>
-        <textarea id="outputText" readonly placeholder="Transformed text will appear here..."></textarea>
-    </div>
 </div>
 
 <script>
     const inputTx = document.getElementById('inputText');
-    const outputTx = document.getElementById('outputText');
     const statsEl = document.getElementById('inputStats');
 
     // Update stats on input
@@ -180,37 +148,28 @@
 
     function clearText() {
         inputTx.value = '';
-        outputTx.value = '';
         updateStats();
     }
 
-    function copyText(id) {
-        const text = document.getElementById(id).value;
-        if (!text) return;
-        navigator.clipboard.writeText(text).then(() => {
-            alert('Copied to clipboard!');
-        });
-    }
-
-    // Case Conversion Logic
+    // Case Conversion Logic (Now updates the input field directly)
     function convertCase(type) {
         let text = inputTx.value;
         if (!text) return;
 
         switch(type) {
             case 'lower':
-                outputTx.value = text.toLowerCase();
+                inputTx.value = text.toLowerCase();
                 break;
             case 'upper':
-                outputTx.value = text.toUpperCase();
+                inputTx.value = text.toUpperCase();
                 break;
             case 'sentence':
                 // Capitalize first letter of every sentence
-                outputTx.value = text.toLowerCase().replace(/(^\s*\w|[.!?]\s*\w)/g, c => c.toUpperCase());
+                inputTx.value = text.toLowerCase().replace(/(^\s*\w|[.!?]\s*\w)/g, c => c.toUpperCase());
                 break;
             case 'capitalized':
                 // Capitalize first letter of every word
-                outputTx.value = text.replace(/\b\w/g, c => c.toUpperCase());
+                inputTx.value = text.replace(/\b\w/g, c => c.toUpperCase());
                 break;
             case 'alternating':
                 let altText = '';
@@ -223,11 +182,11 @@
                         altText += char;
                     }
                 }
-                outputTx.value = altText;
+                inputTx.value = altText;
                 break;
             case 'title':
                 const smallWords = /^(a|an|and|as|at|but|by|en|for|if|in|of|on|or|the|to|v\.?|via|vs\.?)$/i;
-                outputTx.value = text.toLowerCase().split(' ').map((word, index) => {
+                inputTx.value = text.toLowerCase().split(' ').map((word, index) => {
                     if (index === 0 || !smallWords.test(word)) {
                         return word.charAt(0).toUpperCase() + word.slice(1);
                     }
@@ -235,13 +194,16 @@
                 }).join(' ');
                 break;
             case 'inverse':
-                outputTx.value = text.split('').map(c => {
+                inputTx.value = text.split('').map(c => {
                     if (c === c.toUpperCase()) return c.toLowerCase();
                     if (c === c.toLowerCase()) return c.toUpperCase();
                     return c;
                 }).join('');
                 break;
         }
+        
+        // Update the character/word count immediately after transforming
+        updateStats();
     }
 </script>
 </body>
