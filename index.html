@@ -23,9 +23,9 @@
             padding: 20px;
             display: flex;
             flex-direction: column;
-            align-items: center;     /* Centers horizontally */
-            justify-content: center; /* Centers vertically */
-            min-height: 100vh;       /* Takes up full screen height to center content */
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
             box-sizing: border-box;
         }
 
@@ -34,7 +34,7 @@
             flex-direction: column;
             gap: 16px;
             width: 100%;
-            max-width: 800px; /* Keeps the tool from stretching too wide on big screens */
+            max-width: 800px;
         }
 
         .panel {
@@ -48,7 +48,7 @@
 
         textarea {
             width: 100%;
-            height: 100px; /* Fixed compact height for titles */
+            height: 100px;
             background: transparent;
             color: var(--text);
             border: none;
@@ -104,13 +104,12 @@
             gap: 16px;
         }
 
-        /* Adjustments for the transform buttons below */
         .transform-bar {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
             align-items: center;
-            justify-content: center; /* Center the buttons under the box */
+            justify-content: center;
             padding: 0 10px;
         }
     </style>
@@ -138,6 +137,7 @@
         <button onclick="convertCase('alternating')">aLtErNaTiNg cAsE</button>
         <button onclick="convertCase('title')">Title Case</button>
         <button onclick="convertCase('inverse')">InVeRsE CaSe</button>
+        <button onclick="convertCase('unstyle')">Unstyle Text</button>
     </div>
 </div>
 
@@ -161,7 +161,7 @@
         updateStats();
     }
 
-    // Case Conversion Logic (Updates the input field directly)
+    // Case Conversion Logic
     function convertCase(type) {
         let text = inputTx.value;
         if (!text) return;
@@ -174,11 +174,9 @@
                 inputTx.value = text.toUpperCase();
                 break;
             case 'sentence':
-                // Capitalize first letter of every sentence
                 inputTx.value = text.toLowerCase().replace(/(^\s*\w|[.!?]\s*\w)/g, c => c.toUpperCase());
                 break;
             case 'capitalized':
-                // Capitalize first letter of every word
                 inputTx.value = text.replace(/\b\w/g, c => c.toUpperCase());
                 break;
             case 'alternating':
@@ -209,6 +207,27 @@
                     if (c === c.toLowerCase()) return c.toUpperCase();
                     return c;
                 }).join('');
+                break;
+            case 'unstyle':
+                // 1. Normalize the text using NFKD (Compatibility Decomposition).
+                // This automatically turns 𝑩𝒐𝒍𝒅, 𝘐𝘵𝘢𝘭𝘪𝘤, Ｆｕｌｌｗｉｄｔｈ, and Ⓒⓘⓡⓒⓛⓔⓓ back to standard ASCII.
+                let unstyledText = text.normalize('NFKD');
+                
+                // 2. Remove any leftover combining diacritical marks (accents) 
+                unstyledText = unstyledText.replace(/[\u0300-\u036f]/g, '');
+                
+                // 3. Handle Small Caps (ᴀ, ʙ, ᴄ) which do not decompose via NFKD.
+                const smallCapsMap = {
+                    'ᴀ':'a','ʙ':'b','ᴄ':'c','ᴅ':'d','ᴇ':'e','ꜰ':'f','ɢ':'g','ʜ':'h','ɪ':'i','ᴊ':'j',
+                    'ᴋ':'k','ʟ':'l','ᴍ':'m','ɴ':'n','ᴏ':'o','ᴘ':'p','ǫ':'q','ʀ':'r','ꜱ':'s','ᴛ':'t',
+                    'ᴜ':'u','ᴠ':'v','ᴡ':'w','x':'x','ʏ':'y','ᴢ':'z'
+                };
+                
+                unstyledText = unstyledText.replace(/[ᴀ-ᴢ]/g, function(match) {
+                    return smallCapsMap[match] || match;
+                });
+
+                inputTx.value = unstyledText;
                 break;
         }
         
